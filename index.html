@@ -224,8 +224,12 @@ body{
 
 <script>
 // ── env detection ──
-const isWeChat = /MicroMessenger/i.test(navigator.userAgent);
-if(isWeChat)document.getElementById('wechatBanner').classList.add('show');
+const isWeChat = /MicroMessenger|WeChat|MQQBrowser/i.test(navigator.userAgent);
+if(isWeChat){
+  document.getElementById('wechatBanner').classList.add('show');
+  document.getElementById('downloadBtn').textContent = '查看/保存图片';
+  document.getElementById('copyBtn').textContent = '查看/保存图片';
+}
 
 // ── state ──
 let template = 'quote';
@@ -447,7 +451,7 @@ async function doCopy(){
     btn.textContent='已分享';
     btn.classList.add('copied');
   }else{
-    btn.textContent='复制失败';
+    btn.textContent=isWeChat?'长按图片保存':'复制失败';
     showPreviewModal();
   }
   setTimeout(()=>{btn.textContent=orig;btn.classList.remove('copied')},1500);
