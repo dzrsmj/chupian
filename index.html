@@ -137,6 +137,14 @@ body{
 }
 .tip span{color:var(--accent)}
 
+.wechat-banner{
+  display:none;margin:0 20px 12px;padding:12px 16px;
+  border-radius:10px;background:#FFF3CD;border:1px solid #FFE69C;
+  font-size:13px;color:#856404;line-height:1.6
+}
+.wechat-banner.show{display:block}
+.wechat-banner a{color:#856404;font-weight:600}
+
 /* modal */
 .modal-overlay{
   display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);
@@ -157,6 +165,10 @@ body{
 <div class="header">
   <h1>出 片</h1>
   <p>输入文字，一键生成精美分享卡片</p>
+</div>
+
+<div class="wechat-banner" id="wechatBanner">
+  微信内无法直接下载，请点击右上角「···」→<strong>在浏览器中打开</strong>，即可保存和复制卡片
 </div>
 
 <div id="installBanner" class="install-banner">
@@ -211,6 +223,10 @@ body{
 </div>
 
 <script>
+// ── env detection ──
+const isWeChat = /MicroMessenger/i.test(navigator.userAgent);
+if(isWeChat)document.getElementById('wechatBanner').classList.add('show');
+
 // ── state ──
 let template = 'quote';
 let color = 'warm';
@@ -389,11 +405,16 @@ function scheduleRender(){
 
 // ── actions ──
 function download(){
+  if(isWeChat){
+    showPreviewModal();
+    return;
+  }
   const a=document.createElement('a');
   a.download='出片_'+Date.now()+'.png';
   a.href=canvas.toDataURL('image/png');a.click();
 }
 async function copyCard(){
+  if(isWeChat){return 'fallback';}
   try{
     const blob=await new Promise((res,rej)=>{
       canvas.toBlob(b=>b?res(b):rej(new Error('blob failed')),'image/png');
