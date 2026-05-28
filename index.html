@@ -97,10 +97,11 @@ body{
   display:flex;justify-content:center;padding:0 20px
 }
 #cardCanvas{
-  max-width:100%;height:auto;
+  max-width:100%;height:auto;cursor:pointer;
   box-shadow:0 4px 24px rgba(0,0,0,.12);
   border-radius:8px
 }
+#cardCanvas:active{opacity:.9}
 
 /* actions */
 .actions{
@@ -137,14 +138,6 @@ body{
 }
 .tip span{color:var(--accent)}
 
-.wechat-banner{
-  display:none;margin:0 20px 12px;padding:12px 16px;
-  border-radius:10px;background:#FFF3CD;border:1px solid #FFE69C;
-  font-size:13px;color:#856404;line-height:1.6
-}
-.wechat-banner.show{display:block}
-.wechat-banner a{color:#856404;font-weight:600}
-
 /* modal */
 .modal-overlay{
   display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);
@@ -165,10 +158,6 @@ body{
 <div class="header">
   <h1>出 片</h1>
   <p>输入文字，一键生成精美分享卡片</p>
-</div>
-
-<div class="wechat-banner" id="wechatBanner">
-  微信内无法直接下载，请点击右上角「···」→<strong>在浏览器中打开</strong>，即可保存和复制卡片
 </div>
 
 <div id="installBanner" class="install-banner">
@@ -208,7 +197,7 @@ body{
   <canvas id="cardCanvas"></canvas>
 </div>
 
-<div class="tip">卡片预览 <span>⟱</span></div>
+<div class="tip">点按上方卡片可查看大图，<strong>长按即可保存</strong></div>
 
 <div class="actions">
   <button class="btn btn-primary" id="downloadBtn">保存 PNG</button>
@@ -223,14 +212,6 @@ body{
 </div>
 
 <script>
-// ── env detection ──
-const isWeChat = /MicroMessenger|WeChat|MQQBrowser/i.test(navigator.userAgent);
-if(isWeChat){
-  document.getElementById('wechatBanner').classList.add('show');
-  document.getElementById('downloadBtn').textContent = '查看/保存图片';
-  document.getElementById('copyBtn').textContent = '查看/保存图片';
-}
-
 // ── state ──
 let template = 'quote';
 let color = 'warm';
@@ -409,16 +390,11 @@ function scheduleRender(){
 
 // ── actions ──
 function download(){
-  if(isWeChat){
-    showPreviewModal();
-    return;
-  }
   const a=document.createElement('a');
   a.download='出片_'+Date.now()+'.png';
   a.href=canvas.toDataURL('image/png');a.click();
 }
 async function copyCard(){
-  if(isWeChat){return 'fallback';}
   try{
     const blob=await new Promise((res,rej)=>{
       canvas.toBlob(b=>b?res(b):rej(new Error('blob failed')),'image/png');
@@ -451,7 +427,7 @@ async function doCopy(){
     btn.textContent='已分享';
     btn.classList.add('copied');
   }else{
-    btn.textContent=isWeChat?'长按图片保存':'复制失败';
+    btn.textContent='复制失败';
     showPreviewModal();
   }
   setTimeout(()=>{btn.textContent=orig;btn.classList.remove('copied')},1500);
@@ -491,6 +467,7 @@ document.getElementById('sourceTitle').addEventListener('input',scheduleRender);
 document.getElementById('sourceUrl').addEventListener('input',scheduleRender);
 document.getElementById('downloadBtn').addEventListener('click',download);
 document.getElementById('copyBtn').addEventListener('click',doCopy);
+canvas.addEventListener('click',showPreviewModal);
 
 // ── share target: pre-fill from incoming share ──
 const sp=new URLSearchParams(location.search);
