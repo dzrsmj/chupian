@@ -200,15 +200,18 @@ body{
 <div class="tip">点按上方卡片可查看大图，<strong>长按即可保存</strong></div>
 
 <div class="actions">
-  <button class="btn btn-primary" id="downloadBtn">保存 PNG</button>
-  <button class="btn btn-secondary" id="copyBtn">复制图片</button>
+  <button class="btn btn-primary" id="downloadBtn">保存图片</button>
+  <button class="btn btn-secondary" id="copyBtn">复制/分享图片</button>
 </div>
-<div class="tip">「复制图片」可粘贴到聊天、文档、PPT 等应用中，不能直接粘贴为文件</div>
+<div class="tip">如果按钮无法保存，直接<strong>点按上方卡片</strong>→ 长按保存</div>
 
 <div class="modal-overlay" id="previewModal">
   <img id="previewImg" src="" alt="卡片预览">
-  <div class="modal-hint">长按图片 → 保存到相册<br>或截图分享</div>
-  <button class="modal-close" id="modalClose">关闭</button>
+  <div class="modal-hint">长按图片 → 保存到相册</div>
+  <div style="display:flex;gap:12px;margin-top:12px">
+    <button class="modal-close" id="modalDownload">下载 PNG</button>
+    <button class="modal-close" id="modalClose">关闭</button>
+  </div>
 </div>
 
 <script>
@@ -389,48 +392,10 @@ function scheduleRender(){
 }
 
 // ── actions ──
-function download(){
+function modalDownload(){
   const a=document.createElement('a');
   a.download='出片_'+Date.now()+'.png';
   a.href=canvas.toDataURL('image/png');a.click();
-}
-async function copyCard(){
-  try{
-    const blob=await new Promise((res,rej)=>{
-      canvas.toBlob(b=>b?res(b):rej(new Error('blob failed')),'image/png');
-    });
-    await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);
-    return 'ok';
-  }catch(e){
-    // mobile: try Web Share API (works without secure context on some browsers)
-    try{
-      const blob=await new Promise((res,rej)=>{
-        canvas.toBlob(b=>b?res(b):rej(new Error('blob failed')),'image/png');
-      });
-      const file=new File([blob],'出片_'+Date.now()+'.png',{type:'image/png'});
-      if(navigator.canShare&&navigator.canShare({files:[file]})){
-        await navigator.share({files:[file],title:'出片分享卡片'});
-        return 'shared';
-      }
-    }catch(e2){}
-    return 'fallback';
-  }
-}
-async function doCopy(){
-  const btn=document.getElementById('copyBtn');
-  const orig=btn.textContent;
-  const result=await copyCard();
-  if(result==='ok'){
-    btn.textContent='✓ 已复制';
-    btn.classList.add('copied');
-  }else if(result==='shared'){
-    btn.textContent='已分享';
-    btn.classList.add('copied');
-  }else{
-    btn.textContent='复制失败';
-    showPreviewModal();
-  }
-  setTimeout(()=>{btn.textContent=orig;btn.classList.remove('copied')},1500);
 }
 
 function showPreviewModal(){
@@ -465,9 +430,10 @@ document.querySelectorAll('.color-dot').forEach(dot=>{
 document.getElementById('contentInput').addEventListener('input',scheduleRender);
 document.getElementById('sourceTitle').addEventListener('input',scheduleRender);
 document.getElementById('sourceUrl').addEventListener('input',scheduleRender);
-document.getElementById('downloadBtn').addEventListener('click',download);
-document.getElementById('copyBtn').addEventListener('click',doCopy);
+document.getElementById('downloadBtn').addEventListener('click',showPreviewModal);
+document.getElementById('copyBtn').addEventListener('click',showPreviewModal);
 canvas.addEventListener('click',showPreviewModal);
+document.getElementById('modalDownload').addEventListener('click',modalDownload);
 
 // ── share target: pre-fill from incoming share ──
 const sp=new URLSearchParams(location.search);
