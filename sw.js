@@ -1,4 +1,4 @@
-const CACHE = 'chupian-v1';
+const CACHE = 'chupian-v2';
 const BASE = self.location.pathname.replace(/\/[^/]*$/, '');
 const FILES = [BASE + '/', BASE + '/index.html', BASE + '/manifest.json'];
 
